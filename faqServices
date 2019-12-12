@@ -1,0 +1,122 @@
+import axios from "axios";
+import * as helpers from "./serviceHelpers";
+
+let endpoints = {};
+endpoints.faqCategories = helpers.API_HOST_PREFIX + "/api/faqsCategories/";
+endpoints.QA = helpers.API_HOST_PREFIX + "/api/faqs/";
+
+let getCategories = () => {
+  const config = {
+    method: "GET",
+    url: endpoints.faqCategories,
+    withCredentials: true,
+    crossdomain: true,
+    header: {
+      "Content-Type": "application/json"
+    }
+  };
+  return axios(config)
+    .then(helpers.onGlobalSuccess)
+    .catch(helpers.onGlobalError);
+};
+
+let getQA = pageIndex => {
+  const config = {
+    method: "GET",
+    url: endpoints.QA + `paginate/?pageIndex=${pageIndex}&pageSize=5000`,
+    withCredentials: true,
+    crossdomain: true,
+    header: {
+      "Content-Type": "application/json"
+    }
+  };
+  return axios(config)
+    .then(helpers.onGlobalSuccess)
+    .catch(helpers.onGlobalError);
+};
+
+let update = payload => {
+  const config = {
+    method: "PUT",
+    url: endpoints.QA + payload.id,
+    data: payload,
+    withCredentials: true,
+    crossdomain: true,
+    header: {
+      "Content-Type": "application/json"
+    }
+  };
+  return axios(config)
+    .then(helpers.onGlobalSuccess)
+    .catch(helpers.onGlobalError);
+};
+
+let create = payload => {
+  const config = {
+    data: payload,
+    method: "POST",
+    url: endpoints.QA,
+    withCredentials: true,
+    crossdomain: true,
+    header: { "Content-Type": "application/json" }
+  };
+  return axios(config)
+    .then(helpers.onGlobalSuccess)
+    .catch(helpers.onGlobalError);
+};
+
+let deleteFaq = id => {
+  const config = {
+    method: "DELETE",
+    url: endpoints.QA + id,
+    withCredentials: true,
+    crossdomain: true,
+    header: { "Content-Type": "application/json" }
+  };
+  return axios(config)
+    .then(helpers.onGlobalSuccess)
+    .then(() => id)
+    .catch(helpers.onGlobalError);
+};
+
+let addCategory = payload => {
+  const config = {
+    data: payload,
+    method: "POST",
+    url: endpoints.faqCategories,
+    withCredentials: true,
+    crossdomain: true,
+    header: { "Content-Type": "application/json" }
+  };
+  return axios(config)
+    .then(helpers.onGlobalSuccess)
+    .catch(helpers.onGlobalError);
+};
+let editCategory = payload => {
+  const config = {
+    data: payload,
+    method: "PUT",
+    url: endpoints.faqCategories + payload.id,
+    withCredentials: true,
+    crossdomain: true,
+    header: { "Content-Type": "application/json" }
+  };
+  return axios(config)
+    .then(helpers.onGlobalSuccess)
+    .catch(helpers.onGlobalError);
+};
+let deleteCat = id => {
+  const config = {
+    method: "DELETE",
+    url: endpoints.faqCategories + id + "/delete",
+    withCredentials: true,
+    crossdomain: true,
+    header: { "Content-Type": "application/json" }
+  };
+  return axios(config)
+    .then(helpers.onGlobalSuccess)
+    .then(() => id)
+    .catch(helpers.onGlobalError);
+};
+
+export { getCategories, getQA, create, update, deleteFaq, addCategory, editCategory, deleteCat };
