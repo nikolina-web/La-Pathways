@@ -1,0 +1,51 @@
+import React from "react";
+import PropTypes from "prop-types";
+import "./FaqCats.css";
+
+const FaqCard = props => {
+  const editFaq = () => {
+    props.handleEditFaq(props.faq);
+  };
+
+  const deleteFaq = () => {
+    props.handleDeleteFaq(props.faq);
+  };
+  return (
+    <React.Fragment>
+      <div className="collapse.show">
+        <div className="card-text-faq">
+          <div>
+            <hr />
+            <em className="em">Question:</em>
+            <div>{props.faq.question}</div>
+          </div>
+          <br />
+        </div>
+        <div className="card-text-faq">
+          <em className="em">Answer:</em>
+          <div>{props.faq.answer}</div>
+        </div>
+        <br />
+        <button className="btn btn-outline-primary faqEdit" onClick={editFaq}>
+          Edit FAQ
+            </button>
+        <i className="fa fa-trash-o" onClick={deleteFaq}></i>
+
+      </div>
+
+
+    </React.Fragment>
+  );
+};
+
+FaqCard.propTypes = {
+  faq: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    question: PropTypes.string.isRequired,
+    answer: PropTypes.string.isRequired
+  }),
+  handleEditFaq: PropTypes.func,
+  handleDeleteFaq: PropTypes.func
+};
+
+export default FaqCard;
