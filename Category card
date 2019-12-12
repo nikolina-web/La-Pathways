@@ -1,0 +1,50 @@
+import React, { useState } from "react";
+import PropTypes from "prop-types";
+import { Collapse, CardBody, Card } from "reactstrap";
+
+const CatCard = props => {
+  const [isOpen, setIsOpen] = useState(false);
+  const toggle = () => setIsOpen(!isOpen);
+
+  const editCat = () => {
+    props.handleEditCat(props.cat);
+  };
+  const deleteCat = () => {
+    props.handleDeleteCat(props.cat)
+  }
+  return (
+    <div className="card">
+      <div className="card-header">
+        <h2 className="mb-0">
+          <button className="btn btn-outline-primary createNew" onClick={toggle}>
+            {props.cat.name}
+          </button>
+          <i className="fa fa-trash-o" onClick={deleteCat}></i>
+          <button className="btn btn-outline-primary float-right" onClick={editCat}>
+            Edit Category
+          </button>
+        </h2>
+      </div>
+      <div className="card-body">
+        {" "}
+        <Collapse isOpen={isOpen}>
+          <Card>
+            <CardBody>{props.cat.faqs}</CardBody>
+          </Card>
+        </Collapse>
+      </div>
+    </div>
+  );
+};
+
+CatCard.propTypes = {
+  cat: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    name: PropTypes.string.isRequired,
+    faqs: PropTypes.arrayOf(PropTypes.element)
+  }),
+  handleEditCat: PropTypes.func,
+  handleDeleteCat: PropTypes.func
+};
+
+export default CatCard;
