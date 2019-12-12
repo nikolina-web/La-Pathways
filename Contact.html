@@ -1,0 +1,212 @@
+import React, { Component } from "react";
+import { Formik, Field } from "formik";
+import { Form, FormGroup, Label, } from "reactstrap";
+import contactValidationSchema from "./contactValidationSchema";
+import PropTypes from "prop-types";
+import "./Contact.css";
+import { toast } from "react-toastify";
+import Swal from "sweetalert2";
+import * as contactService from "../../services/contactService";
+
+class Contact extends Component {
+  formikRef = React.createRef();
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      formData: {
+        firstName: "",
+        lastName: "",
+        email: "",
+        message: ""
+      }
+    };
+  }
+
+  handleSubmit = values => {
+    contactService
+      .contact(values)
+      .then(this.onSubmitSuccess)
+      .catch(this.onSubmitError);
+  };
+
+  onSubmitSuccess = () => {
+    Swal.fire({
+      type: "success",
+      title: "Email has been sent. We will respond as quickly as possible."
+    });
+  };
+
+  onSubmitError = error => {
+    this.formikRef.current.setSubmitting(false);
+    toast.error(error.message);
+  };
+
+  goBackToResourcesRecomm = () => {
+    this.props.history.goBack()
+  }
+
+  render() {
+    return (
+      <React.Fragment>
+        <Formik
+          ref={this.formikRef}
+          enableReinitialize={true}
+          validationSchema={contactValidationSchema}
+          onSubmit={this.handleSubmit}
+          initialValues={this.state.formData}
+        >
+          {props => {
+            const {
+              values,
+              touched,
+              errors,
+              handleSubmit,
+              isValid,
+              isSubmitting
+            } = props;
+            return (
+              <div className="pageWrapper">
+                <div className="container-fluid">
+                  <div className="authentication-main">
+                    <div className="row">
+                      <div className="col-md-5 p-0">
+                        <div className="auth-innerleft pathwaysImage">
+                          <div className="left-text">Contact us</div>
+                        </div>
+                      </div>
+                      <div className="auth-innerright">
+                        <div className="authentication-box">
+                          <Form onSubmit={handleSubmit}>
+                            <FormGroup className="form-group">
+                              <Label className="col-form-Label">
+                                First Name
+                              </Label>
+                              <div>
+                                <Field
+                                  type="text"
+                                  name="firstName"
+                                  values={values.firstName}
+                                  placeholder="First Name"
+                                  className={
+                                    errors.firstName && touched.firstName
+                                      ? "form-control"
+                                      : "form-control"
+                                  }
+                                />
+                                {errors.firstName && touched.firstName && (
+                                  <span className="input-feedback">
+                                    {errors.firstName}
+                                  </span>
+                                )}
+                                <p className="help-block"></p>
+                              </div>
+                            </FormGroup>
+                            <FormGroup>
+                              <Label className="col-form-Label">
+                                Last Name
+                              </Label>
+                              <div>
+                                <Field
+                                  type="text"
+                                  name="lastName"
+                                  values={values.lastName}
+                                  placeholder="Last Name"
+                                  className={
+                                    errors.lastName && touched.lastName
+                                      ? "form-control"
+                                      : "form-control"
+                                  }
+                                />
+                                {errors.lastName && touched.lastName && (
+                                  <span className="input-feedback">
+                                    {errors.lastName}
+                                  </span>
+                                )}
+                                <p className="help-block"></p>
+                              </div>
+                            </FormGroup>
+                            <FormGroup>
+                              <Label className="col-form-Label">Email</Label>
+                              <div>
+                                <Field
+                                  type="email"
+                                  name="email"
+                                  values={values.email}
+                                  placeholder="Enter Email"
+                                  className={
+                                    errors.email && touched.email
+                                      ? "form-control"
+                                      : "form-control"
+                                  }
+                                />
+                                {errors.email && touched.email && (
+                                  <span className="input-feedback">
+                                    {errors.email}
+                                  </span>
+                                )}
+                                <p className="help-block"></p>
+                              </div>
+                            </FormGroup>
+                            <FormGroup>
+                              <Label className="col-form-Label">Message</Label>
+                              <div>
+                                <Field
+                                  component="textarea"
+                                  type="text"
+                                  name="message"
+                                  values={values.message}
+                                  placeholder="Enter Message"
+                                  className={
+                                    errors.message && touched.message
+                                      ? "form-control"
+                                      : "form-control"
+                                  }
+                                />
+                                {errors.message && touched.message && (
+                                  <span className="input-feedback">
+                                    {errors.message}
+                                  </span>
+                                )}
+                                <p className="help-block"></p>
+                              </div>
+                            </FormGroup>
+                            <button
+                              type="submit"
+                              disabled={!isValid || isSubmitting}
+                              className="btn btn-primary"
+                            >
+                              Send
+                              </button>
+                            <button
+                              type="button"
+                              className="btn btn-secondary float-right "
+                              onClick={this.goBackToResourcesRecomm}
+                            >
+                              Go Back
+                        </button>
+                          </Form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          }}
+        </Formik>
+      </React.Fragment>
+    );
+  }
+}
+Contact.propTypes = {
+  state: PropTypes.shape({
+    firstName: PropTypes.string,
+    lastName: PropTypes.string,
+    email: PropTypes.string,
+    message: PropTypes.string
+  }),
+  history: PropTypes.shape({ goBack: PropTypes.func }),
+
+};
+export default Contact;
