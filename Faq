@@ -1,0 +1,223 @@
+import React from "react";
+import * as faqServices from "../../services/faqServices";
+import CatCard from "./CatCard.jsx";
+import PropTypes from "prop-types";
+import FaqCard from "./FaqCard";
+import "./FaqCats.css";
+import { toast } from "react-toastify";
+
+class FaqCats extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      categories: [],
+      faqs: [],
+      currentPage: 0,
+      mappedCategories: [],
+      mapFaqQa: []
+    };
+  }
+
+  componentDidMount() {
+    this.getCategories();
+  }
+
+  getCategories = () => {
+    faqServices
+      .getCategories()
+      .then(this.onGetCatsSuccsess)
+      .then(this.getFaqs)
+      .catch(this.onGetCatsError);
+  };
+
+  getFaqs = () => {
+    faqServices
+      .getQA(this.state.currentPage)
+      .then(this.onGetQASuccsess)
+      .catch(this.onGetQaError);
+  };
+  onGetQASuccsess = res => {
+    let faqs = res.item.pagedItems;
+    let categories = [...this.state.categories];
+
+    categories.forEach(currentCategory => {
+      currentCategory.faqs = [];
+
+      faqs.forEach(currentFaq => {
+        if (currentCategory.id === currentFaq.categoryId) {
+          currentCategory.faqs.push(this.mapFaqQa(currentFaq));
+        }
+      });
+    });
+
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        mappedCategories: categories.map(this.mapCategory)
+      };
+    });
+  };
+
+  onGetQaError = error => {
+    toast.error(error.message);
+  };
+
+  onGetCatsSuccsess = data => {
+    let cats = data.items;
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        categories: cats
+      };
+    });
+  };
+
+  onGetCatsError = error => {
+    toast.error(error.message);
+  };
+  mapCategory = cat => (
+    <CatCard
+      key={cat.id}
+      cat={cat}
+      name={this.name}
+      editFaq={this.editFaq}
+      handleEditCat={this.handleEditCat}
+      handleDeleteCat={this.handleDeleteCat}
+    />
+  );
+  mapFaqQa = faq => (
+    <FaqCard
+      key={faq.id}
+      faq={faq}
+      question={this.questions}
+      answer={this.answer}
+      handleEditFaq={this.handleEditFaq}
+      handleDeleteFaq={this.handleDeleteFaq}
+    />
+  );
+
+  createFaq = () => {
+    this.props.history.push("/admin/faq/create");
+  };
+
+  createCat = () => {
+    this.props.history.push("/admin/faqCats/add");
+  };
+  handleEditCat = cat => {
+    let obj = this.cleanCat(cat);
+    this.props.history.push(`/admin/faqCats/${cat.id}/edit`, obj);
+  };
+
+  cleanCat = cat => {
+    let obj = {
+      id: cat.id,
+      name: cat.name
+    };
+    return obj;
+  };
+
+  handleEditFaq = faq => {
+    this.props.history.push(`/admin/faq/${faq.id}/edit`, faq);
+  };
+  handleDeleteFaq = id => {
+    faqServices
+      .deleteFaq(id.id)
+      .then(this.onDeleteFaqSuccsess)
+      .catch(this.onDeleteFaqError);
+  };
+
+  onDeleteFaqSuccsess = id => {
+    faqServices
+      .getCategories()
+      .then(this.onGetCatsSuccsess)
+      .then(this.getFaqs)
+      .catch(this.onGetCatsError);
+
+    let copyOfFaqs = [...this.state.faqs];
+    const index = copyOfFaqs.findIndex(element => element.id === id);
+    if (index >= 0) {
+      copyOfFaqs.splice(index, 1);
+      this.setState(prevState => {
+        return {
+          ...prevState,
+          faqs: copyOfFaqs,
+          mapFaqQa: copyOfFaqs.map(this.mapFaqQa)
+        };
+      });
+    }
+  };
+  onDeleteFaqError = error => {
+    toast.error(error.message);
+  };
+
+  handleDeleteCat = id => {
+    faqServices
+      .deleteCat(id.id)
+      .then(this.onDeleteCatSuccsess)
+      .catch(this.onDeleteCatError);
+  };
+
+  onDeleteCatSuccsess = id => {
+    faqServices
+      .getCategories()
+      .then(this.onGetCatsSuccsess)
+      .then(this.getFaqs)
+      .catch(this.onGetCatsError);
+
+    let copyOfCats = [...this.state.cats];
+    const index = copyOfCats.findIndex(element => element.id === id);
+    if (index >= 0) {
+      copyOfCats.splice(index, 1);
+      this.setState(prevState => {
+        return {
+          ...prevState,
+          cats: copyOfCats,
+          mappedCategories: copyOfCats(this.mappedCategories)
+        };
+      });
+    }
+  };
+
+  onDeleteCatError = error => {
+    toast.error(error.message);
+  };
+  render() {
+    return (
+      <React.Fragment>
+        <div className="d-flex justify-content-left">
+          <div className="col-sm-5 headerFaq">
+            <h4>Frequently Asked Questions</h4>
+          </div>
+          <div>
+            <div className="d-flex justify-content-center button">
+              <button className="btn btn-primary ml-2" onClick={this.createFaq}>
+                Create new FAQ
+              </button>
+
+              <button
+                className="btn btn-secondary ml-2"
+                onClick={this.createCat}
+              >
+                Create new Category
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="">
+          <div className="accordion" id="accordionExample">
+            {this.state.mappedCategories}
+          </div>
+        </div>
+      </React.Fragment>
+    );
+  }
+}
+FaqCats.propTypes = {
+  history: PropTypes.shape({
+    push: PropTypes.func
+  })
+};
+
+export default FaqCats;
