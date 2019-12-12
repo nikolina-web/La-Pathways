@@ -1,0 +1,14 @@
+import * as Yup from "yup";
+
+const faqValidationSchema = Yup.object().shape({
+  categoryId: Yup.number().required("Category Id is Required"),
+  question: Yup.string()
+    .min(5, "Must be a least 5 characters")
+    .max(1000, "Must be below 1000 characters")
+    .required("Question is required"),
+  answer: Yup.string()
+    .min(5, "Must be at least 5 characters")
+    .max(1000, "Must be below 1000 characters")
+    .required("Answer is required")
+});
+export default faqValidationSchema;
