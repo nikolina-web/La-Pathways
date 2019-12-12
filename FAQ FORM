@@ -1,0 +1,232 @@
+import React from "react";
+import { Form, FormGroup, Label, Button } from "reactstrap";
+import { Formik, Field } from "formik";
+import PropTypes from "prop-types";
+import * as faqServices from "../../services/faqServices";
+import faqValidationSchema from "./faqValidationSchema";
+import { toast } from "react-toastify";
+import "./FaqCats.css";
+
+class FaqForm extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      formData: {
+        categoryId: 0,
+        question: "",
+        answer: ""
+      },
+      isEditing: false
+    };
+  }
+
+  componentDidMount() {
+    faqServices
+      .getCategories()
+      .then(this.onGetCatsSuccsess)
+      .catch(this.onGetCatsError);
+
+    const { id } = this.props.match.params;
+    if (id) {
+      let formData = this.props.location.state;
+      if (formData) {
+        this.setFormData(formData);
+      }
+    }
+  }
+
+  setFormData = data => {
+    let formData = {
+      id: data.id,
+      sortOrder: data.sortOrder,
+      categoryId: data.categoryId,
+      question: data.question,
+      answer: data.answer
+    };
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        formData,
+        isEditing: true
+      };
+    });
+  };
+
+  onGetCatsSuccsess = res => {
+    let categoryId = res.items.map(this.mapCategories);
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        categoryId
+      };
+    });
+  };
+
+  mapCategories = index => (
+    <option key={index.id} value={index.id}>
+      {index.name}
+    </option>
+  );
+
+  handleSubmit = values => {
+    this.state.isEditing
+      ? faqServices
+          .update(values)
+          .then(this.onEditSuccsess)
+          .catch(this.onEditError)
+      : faqServices
+          .create(values)
+          .then(this.onCreateSuccsess)
+          .catch(this.onCreateError);
+  };
+
+  onCreateSuccsess = () => {
+    this.props.history.push("/admin/faqCats/");
+  };
+  onCreateError = error => {
+    toast.error(error.message);
+  };
+
+  onEditSuccsess = () => {
+    this.props.history.push("/admin/faqCats/");
+  };
+
+  onEditError = error => {
+    toast.error(error.message);
+  };
+  goBackToCats = () => {
+    this.props.history.push("/admin/faqCats");
+  };
+
+  render() {
+    return (
+      <React.Fragment>
+        <Formik
+          enableReinitialize={true}
+          validationSchema={faqValidationSchema}
+          initialValues={this.state.formData}
+          isInitialValid={this.state.isEditing}
+          onSubmit={this.handleSubmit}
+        >
+          {props => {
+            const {
+              values,
+              touched,
+              errors,
+              handleSubmit,
+              isValid,
+              isSubmitting
+            } = props;
+            return (
+              <div className="card-body">
+                <div className="card p-4 col-md-12">
+                  <Form onSubmit={handleSubmit} className={"col-md-12 pt-4"}>
+                    <FormGroup>
+                      <Label for="exampleSelect">
+                        <p className="EditCreate">
+                          {" "}
+                          {this.state.isEditing
+                            ? "Edit Faq's"
+                            : "Create new Faq"}
+                        </p>
+                        <em>Category</em>
+                      </Label>
+                      <Field
+                        component="select"
+                        name="categoryId"
+                        id="exampleSelect"
+                        values={values.categoryId}
+                        className="form-control"
+                      >
+                        <option key="0" value="0">
+                          Select Category
+                        </option>
+                        {this.state.categoryId ? this.state.categoryId : ""}
+                      </Field>
+                    </FormGroup>
+                    {errors.categoryId && touched.categoryId && (
+                      <span className="input-feedback">
+                        {errors.categoryId}
+                      </span>
+                    )}
+                    <FormGroup>
+                      <Label>
+                        <em>Question</em>
+                      </Label>
+                      <Field
+                        component="textarea"
+                        name="question"
+                        type="text"
+                        values={values.question}
+                        placeholder="Question"
+                        autoComplete="off"
+                        className={
+                          errors.question && touched.question
+                            ? "form-control"
+                            : "form-control"
+                        }
+                      />
+                    </FormGroup>
+                    {errors.question && touched.question && (
+                      <span className="input-feedback">{errors.question}</span>
+                    )}
+                    <FormGroup>
+                      <Label>
+                        <em>Answer</em>
+                      </Label>
+                      <Field
+                        component="textarea"
+                        name="answer"
+                        type="text"
+                        values={values.answer}
+                        placeholder="Answer"
+                        autoComplete="off"
+                        className={
+                          errors.answer && touched.answer
+                            ? "form-control"
+                            : "form-control"
+                        }
+                      />
+                      {errors.answer && touched.answer && (
+                        <span className="input-feedback">{errors.answer}</span>
+                      )}
+                    </FormGroup>
+                    <Button type="submit" disabled={!isValid || isSubmitting}>
+                      {this.state.isEditing ? "Edit" : "Create"}
+                    </Button>
+                    <Button
+                      type="button"
+                      className="float-right"
+                      color=" #c22b38"
+                      onClick={this.goBackToCats}
+                    >
+                      Cancel
+                    </Button>
+                  </Form>
+                </div>
+              </div>
+            );
+          }}
+        </Formik>
+      </React.Fragment>
+    );
+  }
+}
+
+FaqForm.propTypes = {
+  match: PropTypes.shape({
+    params: PropTypes.shape({
+      id: PropTypes.string
+    })
+  }),
+  location: PropTypes.shape({
+    state: PropTypes.shape({
+      categoryId: PropTypes.number.isRequired,
+      question: PropTypes.string.isRequired,
+      answer: PropTypes.string.isRequired
+    })
+  }),
+  history: PropTypes.shape({ push: PropTypes.func })
+};
+export default FaqForm;
