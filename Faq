@@ -37,30 +37,49 @@ class FaqCats extends React.Component {
       .then(this.onGetQASuccsess)
       .catch(this.onGetQaError);
   };
+
   onGetQASuccsess = res => {
     let faqs = res.item.pagedItems;
     let categories = [...this.state.categories];
 
-    categories.forEach(currentCategory => {
-      currentCategory.faqs = [];
+    if (faqs && categories) {
+      console.log("Cats and Faqs");
+      categories.forEach(currentCategory => {
+        currentCategory.faqs = [];
 
-      faqs.forEach(currentFaq => {
-        if (currentCategory.id === currentFaq.categoryId) {
-          currentCategory.faqs.push(this.mapFaqQa(currentFaq));
-        }
+        faqs.forEach(currentFaq => {
+          if (currentCategory.id === currentFaq.categoryId) {
+            currentCategory.faqs.push(this.mapFaqQa(currentFaq));
+          }
+        });
       });
-    });
 
+      this.setState(prevState => {
+        return {
+          ...prevState,
+          mappedCategories: categories.map(this.mapCategory)
+        };
+      });
+    } else if (categories) {
+      console.log("Cats only");
+      this.setState(prevState => {
+        return {
+          ...prevState,
+          mappedCategories: categories.map(this.mapCategory)
+        };
+      });
+    }
+  };
+
+  onGetQaError = () => {
+    toast.error("Please add a category, question, and answer.");
+    let categories = [...this.state.categories];
     this.setState(prevState => {
       return {
         ...prevState,
         mappedCategories: categories.map(this.mapCategory)
       };
     });
-  };
-
-  onGetQaError = error => {
-    toast.error(error.message);
   };
 
   onGetCatsSuccsess = data => {
@@ -73,8 +92,11 @@ class FaqCats extends React.Component {
     });
   };
 
-  onGetCatsError = error => {
-    toast.error(error.message);
+  onGetCatsError = () => {
+    toast.error("Please add a category, question, and answer.");
+    this.setState(prevState => {
+      return { ...prevState, mappedCategories: [] };
+    });
   };
   mapCategory = cat => (
     <CatCard
@@ -151,32 +173,19 @@ class FaqCats extends React.Component {
     toast.error(error.message);
   };
 
-  handleDeleteCat = id => {
+  handleDeleteCat = cat => {
     faqServices
-      .deleteCat(id.id)
+      .deleteCat(cat.id)
       .then(this.onDeleteCatSuccsess)
       .catch(this.onDeleteCatError);
   };
 
-  onDeleteCatSuccsess = id => {
+  onDeleteCatSuccsess = () => {
     faqServices
       .getCategories()
       .then(this.onGetCatsSuccsess)
       .then(this.getFaqs)
       .catch(this.onGetCatsError);
-
-    let copyOfCats = [...this.state.cats];
-    const index = copyOfCats.findIndex(element => element.id === id);
-    if (index >= 0) {
-      copyOfCats.splice(index, 1);
-      this.setState(prevState => {
-        return {
-          ...prevState,
-          cats: copyOfCats,
-          mappedCategories: copyOfCats(this.mappedCategories)
-        };
-      });
-    }
   };
 
   onDeleteCatError = error => {
@@ -192,6 +201,7 @@ class FaqCats extends React.Component {
           <div>
             <div className="d-flex justify-content-center button">
               <button className="btn btn-primary ml-2" onClick={this.createFaq}>
+                <i className=" mr-2 fas fa-plus-square fa" />
                 Create new FAQ
               </button>
 
@@ -199,7 +209,8 @@ class FaqCats extends React.Component {
                 className="btn btn-secondary ml-2"
                 onClick={this.createCat}
               >
-                Create new Category
+                <i className=" mr-2 fas fa-plus-square fa" /> Create new
+                Category
               </button>
             </div>
           </div>
